@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.example.turnoscrear.R
@@ -17,10 +16,9 @@ class VerAtraccionAdapter (
 
     inner class VerAtraccionViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
-
-        val nombre: TextView = itemView.findViewById(R.id.nombreAtraccion)
-        val SeleccionarAtraccion: ConstraintLayout = itemView.findViewById(R.id.ContenidoAtraccion)
-    }
+            val nombre: TextView = itemView.findViewById(R.id.nombreAtraccion)
+            val SeleccionarAtraccion: ConstraintLayout = itemView.findViewById(R.id.ContenidoAtraccion)
+        }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) :
             VerAtraccionViewHolder {
@@ -30,12 +28,25 @@ class VerAtraccionAdapter (
     }
 
     override fun onBindViewHolder(holder: VerAtraccionViewHolder, position: Int) {
+
         val atraccion = lista[position]
 
         holder.nombre.text = atraccion.nombre
 
+        // Cambiar color según selección
+        if (atraccion.seleccionada) {
+            holder.SeleccionarAtraccion.setBackgroundColor(
+                holder.itemView.context.getColor(R.color.green_dark)
+            )
+        } else {
+            holder.SeleccionarAtraccion.setBackgroundColor(
+                holder.itemView.context.getColor(R.color.green)
+            )
+        }
+
         holder.SeleccionarAtraccion.setOnClickListener {
-            Toast.makeText(holder.itemView.context, "${holder.nombre}", Toast.LENGTH_SHORT).show()
+            atraccion.seleccionada = !atraccion.seleccionada
+            notifyItemChanged(position)
         }
     }
 

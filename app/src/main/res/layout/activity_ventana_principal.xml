@@ -128,7 +128,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="500dp"
                     android:layout_height="wrap_content"
-                    android:hint="Celular:"
+                    android:hint="Celular: (Opcional)"
                     app:startIconDrawable="@drawable/phone"
                     app:boxStrokeColor="@color/green">
 
