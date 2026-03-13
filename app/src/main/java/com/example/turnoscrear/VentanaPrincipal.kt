@@ -46,6 +46,7 @@ class VentanaPrincipal : AppCompatActivity() {
     private lateinit var adapter: VerAtraccionAdapter
     private var listaAtracciones = mutableListOf<Atraccion>()
     var contador = 1
+    var datoNumeroTelefonico = ""
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,7 +101,13 @@ class VentanaPrincipal : AppCompatActivity() {
 
         btnSubirInfo.setOnClickListener {
 
-            if (ContadorPersonas.text.isNullOrEmpty() || edtxNumero.text.isNullOrEmpty()) {
+            if (edtxNumero.text.toString().isEmpty()){
+                datoNumeroTelefonico = "No Registrado"
+            } else {
+                datoNumeroTelefonico = edtxNumero.text.toString()
+            }
+
+            if (ContadorPersonas.text.isNullOrEmpty()) {
                 Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -115,7 +122,7 @@ class VentanaPrincipal : AppCompatActivity() {
 
             val request = CrearTurnosMultiplesRequest(
                 atraccionesIds = atraccionesSeleccionadas.map { it._id!! },
-                telefono = edtxNumero.text.toString(),
+                telefono = datoNumeroTelefonico,
                 cantidadPersonas = ContadorPersonas.text.toString().toInt(),
                 fecha = LocalDate.now().toString()
             )
@@ -141,12 +148,10 @@ class VentanaPrincipal : AppCompatActivity() {
 
     private fun cargarAtracciones() {
         lifecycleScope.launch {
-
             try {
                 val lista: List<Atraccion> =
                     ApiClient.client.get("${ApiClient.BASE_URL}/atracciones")
                         .body()
-
                 adapter.actualizarLista(lista)
             } catch (e: Exception) {
                 e.printStackTrace()

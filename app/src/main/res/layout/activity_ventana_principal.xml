@@ -126,7 +126,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/inputLayoutPhone"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="500dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Celular: (Opcional)"
                     app:startIconDrawable="@drawable/phone"
@@ -145,22 +145,24 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="80dp"
                 android:layout_marginBottom="8dp"
-                android:background="#BDBDBD" />
-
-            <Button
-                android:id="@+id/btnSubirInfo"
-                android:layout_width="500dp"
-                android:layout_height="wrap_content"
-                android:text="Crear Turno"
-                android:textSize="25dp"
-                android:backgroundTint="@color/cafePrincipal"
-                android:textColor="@color/white"
-                android:layout_marginTop="20dp" />
+                android:background="#BDBDBD"
+                android:visibility="invisible" />
 
         </LinearLayout>
 
     </ScrollView>
+
+    <Button
+        android:id="@+id/btnSubirInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Crear Turno"
+        android:textSize="25sp"
+        android:backgroundTint="@color/cafePrincipal"
+        android:textColor="@color/white"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="bottom"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
