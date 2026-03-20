@@ -145,6 +145,82 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp"
+                android:background="#BDBDBD" />
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp">
+
+                <Button
+                    android:id="@+id/VerHistorialTurnos"
+                    android:layout_width="230dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Ver Historial Turnos"
+                    android:backgroundTint="@color/cafePrincipal"/>
+
+                <Button
+                    android:id="@+id/OcultarHistorialTurnos"
+                    android:layout_width="230dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Ocultar Historial Turnos"
+                    android:backgroundTint="@color/green"
+                    android:visibility="invisible"/>
+
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/BuscadorTurnoImprimir"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5sp"
+                app:queryHint="Buscar Turno..."
+                android:visibility="gone"/>
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:id="@+id/VerTurnos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/AvisoSinTurnosImprimir"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:src="@drawable/nada"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No hay turnos"
+                        android:textSize="30dp"
+                        android:textAlignment="center"/>
+
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/RevListaTurnosImprimir"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
                 android:layout_marginTop="80dp"
                 android:layout_marginBottom="8dp"
                 android:background="#BDBDBD"

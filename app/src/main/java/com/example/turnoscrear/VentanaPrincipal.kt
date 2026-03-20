@@ -2,22 +2,29 @@ package com.example.turnoscrear
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.turnoscrear.adapter.ResumenTurnoAdapter
+import com.example.turnoscrear.adapter.TurnosAdapter
 import com.example.turnoscrear.adapter.VerAtraccionAdapter
 import com.example.turnoscrear.model.Atraccion
 import com.example.turnoscrear.model.CrearTurnosMultiplesRequest
 import com.example.turnoscrear.model.TurnoResumenResponse
+import com.example.turnoscrear.model.Turnos
 import com.example.turnoscrear.network.ApiClient
 import com.google.android.material.textfield.TextInputEditText
 import com.hbb20.CountryCodePicker
@@ -32,7 +39,8 @@ import io.ktor.client.request.post
 import io.ktor.websocket.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class VentanaPrincipal : AppCompatActivity() {
 
@@ -40,13 +48,22 @@ class VentanaPrincipal : AppCompatActivity() {
     private lateinit var disminuir: ImageView
     private lateinit var ContadorPersonas: EditText
     private lateinit var agregar: ImageView
+    private lateinit var AvisoSinTurnosImprimir: LinearLayout
+    private lateinit var VerTurnos: CoordinatorLayout
     private lateinit var CountryCodePicker: CountryCodePicker
     private lateinit var edtxNumero: TextInputEditText
     private lateinit var btnSubirInfo: Button
+    private lateinit var VerHistorialTurnos: Button
+    private lateinit var OcultarHistorialTurnos: Button
+    private lateinit var BuscadorTurnoImprimir: SearchView
+    private lateinit var RevListaTurnosImprimir: RecyclerView
     private lateinit var adapter: VerAtraccionAdapter
     private var listaAtracciones = mutableListOf<Atraccion>()
+    private lateinit var adapterTurnos: TurnosAdapter
+    private val listaTurnosOriginal = mutableListOf<Turnos>()
     var contador = 1
     var datoNumeroTelefonico = ""
+    var nombreAtraccion = ""
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,6 +77,12 @@ class VentanaPrincipal : AppCompatActivity() {
         CountryCodePicker = findViewById(R.id.CountryCodePicker)
         edtxNumero = findViewById(R.id.edtxNumero)
         btnSubirInfo = findViewById(R.id.btnSubirInfo)
+        VerHistorialTurnos = findViewById(R.id.VerHistorialTurnos)
+        OcultarHistorialTurnos = findViewById(R.id.OcultarHistorialTurnos)
+        BuscadorTurnoImprimir = findViewById(R.id.BuscadorTurnoImprimir)
+        RevListaTurnosImprimir = findViewById(R.id.RevListaTurnosImprimir)
+        AvisoSinTurnosImprimir = findViewById(R.id.AvisoSinTurnosImprimir)
+        VerTurnos = findViewById(R.id.VerTurnos)
 
         CountryCodePicker.registerCarrierNumberEditText(edtxNumero)
 
@@ -72,8 +95,6 @@ class VentanaPrincipal : AppCompatActivity() {
         )
         RevVerAtraccion.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
         RevVerAtraccion.adapter = adapter
-        cargarAtracciones()
-        conectarWebSocket()
 
         // Configurar Botones Aumentar Disminuir Personas
 
@@ -100,6 +121,7 @@ class VentanaPrincipal : AppCompatActivity() {
         }
 
         btnSubirInfo.setOnClickListener {
+            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a")
 
             if (edtxNumero.text.toString().isEmpty()){
                 datoNumeroTelefonico = "No Registrado"
@@ -124,7 +146,7 @@ class VentanaPrincipal : AppCompatActivity() {
                 atraccionesIds = atraccionesSeleccionadas.map { it._id!! },
                 telefono = datoNumeroTelefonico,
                 cantidadPersonas = ContadorPersonas.text.toString().toInt(),
-                fecha = LocalDate.now().toString()
+                fecha = LocalDateTime.now().format(formatter)
             )
 
             lifecycleScope.launch {
@@ -144,6 +166,64 @@ class VentanaPrincipal : AppCompatActivity() {
                 }
             }
         }
+
+        VerHistorialTurnos.setOnClickListener {
+            VerHistorialTurnos.visibility = View.GONE
+            OcultarHistorialTurnos.visibility = View.VISIBLE
+            VerTurnos.visibility = View.VISIBLE
+            BuscadorTurnoImprimir.visibility = View.VISIBLE
+        }
+
+        OcultarHistorialTurnos.setOnClickListener {
+            VerHistorialTurnos.visibility = View.VISIBLE
+            OcultarHistorialTurnos.visibility = View.GONE
+            VerTurnos.visibility = View.GONE
+            BuscadorTurnoImprimir.visibility = View.GONE
+        }
+
+        adapterTurnos = TurnosAdapter(
+            mutableListOf(),
+            { turno -> actualizarTurnos(turno) }
+        )
+
+        RevListaTurnosImprimir.layoutManager =
+            LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
+
+        RevListaTurnosImprimir.adapter = adapterTurnos
+
+        BuscadorTurnoImprimir.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filtrarTurnos(newText ?: "")
+                return true
+            }
+        })
+        cargarAtracciones()
+
+        cargarTurnos()
+
+        conectarWebSocket()
+
+        conectarWebSocketTurnos()
+    }
+
+    private fun filtrarTurnos(texto: String) {
+
+        val textoLower = texto.lowercase()
+
+        if (textoLower.isEmpty()) {
+            adapterTurnos.actualizarLista(listaTurnosOriginal)
+            return
+        }
+
+        val filtrados = listaTurnosOriginal.filter {
+
+            it.numeroTurno.contains(textoLower, true) ||
+                    it.telefono.replace(" ", "").contains(textoLower)
+        }
+
+        adapterTurnos.actualizarLista(filtrados)
     }
 
     private fun cargarAtracciones() {
@@ -207,6 +287,36 @@ class VentanaPrincipal : AppCompatActivity() {
         }
     }
 
+    private fun conectarWebSocketTurnos() {
+        lifecycleScope.launch {
+            try {
+                ApiClient.client.webSocket(
+                    method = io.ktor.http.HttpMethod.Get,
+                    host = "192.168.0.200",
+                    port = 8080,
+                    path = "/ws/turnos"
+                ) {
+                    for (frame in incoming) {
+                        if (frame is Frame.Text) {
+
+                            val mensaje = frame.readText()
+
+                            if (mensaje == "TURNOS_UPDATED") {
+
+                                withContext(Dispatchers.Main) {
+                                    cargarTurnos()
+                                }
+                            }
+                        }
+                    }
+                }
+
+            } catch (e: Exception) {
+                println("❌ Error WebSocket TURNOS: ${e.message}")
+            }
+        }
+    }
+
     private fun formatearTiempo(segundos: Int): String {
 
         val horas = segundos / 3600
@@ -244,6 +354,24 @@ class VentanaPrincipal : AppCompatActivity() {
             .setPositiveButton("Aceptar") { d, _ ->
                 confirmarCreacionTurnos(listaResumen)
                 d.dismiss()
+            }.setNeutralButton("Imprimir"){ d, _ ->
+                confirmarCreacionTurnos(listaResumen)
+
+                lifecycleScope.launch {
+                    try {
+                        ApiClient.client.post("${ApiClient.BASE_URL}/turnos/imprimir") {
+                            contentType(io.ktor.http.ContentType.Application.Json)
+                            setBody(listaResumen)
+                        }
+
+                        Toast.makeText(this@VentanaPrincipal, "Imprimiendo Ticket...", Toast.LENGTH_SHORT).show()
+
+                    } catch (e: Exception) {
+                        Toast.makeText(this@VentanaPrincipal, "Error al imprimir", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                d.dismiss()
             }
             .create()
 
@@ -261,7 +389,7 @@ class VentanaPrincipal : AppCompatActivity() {
             atraccionesIds = atraccionesIds,
             telefono = edtxNumero.text.toString(),
             cantidadPersonas = ContadorPersonas.text.toString().toInt(),
-            fecha = java.time.LocalDate.now().toString()
+            fecha = java.time.LocalDateTime.now().toString()
         )
 
         lifecycleScope.launch {
@@ -280,6 +408,8 @@ class VentanaPrincipal : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
 
+                cargarTurnos()
+
                 limpiarFormulario()
 
             } catch (e: Exception) {
@@ -291,6 +421,50 @@ class VentanaPrincipal : AppCompatActivity() {
                 ).show()
             } finally {
                 btnSubirInfo.isEnabled = true
+            }
+        }
+    }
+
+    private fun cargarTurnos() {
+        lifecycleScope.launch {
+            try {
+                val lista: List<Turnos> =
+                    ApiClient.client
+                        .get("${ApiClient.BASE_URL}/turnos")
+                        .body()
+
+                val listaFiltrada = if (nombreAtraccion.isEmpty()) {
+                    lista
+                } else {
+                    lista.filter { it.nombreAtraccion == nombreAtraccion }
+                }
+
+                val listaCancelados = listaFiltrada.filter { it.estado == "ESPERA" }
+
+                listaTurnosOriginal.clear()
+                listaTurnosOriginal.addAll(listaCancelados)
+
+                adapterTurnos.actualizarLista(listaCancelados)
+
+                AvisoSinTurnosImprimir.visibility =
+                    if (listaCancelados.isEmpty()) View.VISIBLE else View.GONE
+
+            } catch (e: Exception) {
+                Log.e("ERROR_TURNOS", e.message ?: "Error desconocido")
+            }
+        }
+    }
+
+    private fun actualizarTurnos(turnos: Turnos){
+        lifecycleScope.launch {
+            try {
+                ApiClient.client.put("${ApiClient.BASE_URL}/turnos/${turnos._id}") {
+                    contentType(io.ktor.http.ContentType.Application.Json)
+                    setBody(turnos)
+                }
+                cargarTurnos()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

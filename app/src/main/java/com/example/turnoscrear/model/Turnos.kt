@@ -3,7 +3,7 @@ package com.example.turnoscrear.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Turno (
+data class Turnos (
     val _id: String? = null,
     val atraccionId: String,
     val nombreAtraccion: String,
@@ -12,6 +12,6 @@ data class Turno (
     val telefono: String,
     val tiempoEspera: Int = 0,
     val duracion: Int = 0,
-    val estado: EstadoTurno = EstadoTurno.ESPERA,
+    var estado: String,
     val fecha: String
 )

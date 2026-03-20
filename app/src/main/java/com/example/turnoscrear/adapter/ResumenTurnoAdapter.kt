@@ -33,7 +33,7 @@ class ResumenTurnoAdapter(
         holder.nombre.text = "Atracción: ${item.nombreAtraccion}"
         holder.turno.text = "Turno: ${item.numeroTurno}"
         holder.duracion.text = "Duración: ${formatearTiempo(item.duracionSegundos)}"
-        holder.espera.text = "Espera actual: ${formatearTiempo(item.tiempoEspera)}"
+        holder.espera.text = "Tiempo Espera: ${formatearTiempo(item.tiempoEspera)}"
     }
 
     private fun formatearTiempo(segundos: Int): String {
